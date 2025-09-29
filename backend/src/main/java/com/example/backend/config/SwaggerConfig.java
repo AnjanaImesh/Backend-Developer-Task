@@ -20,7 +20,7 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.OAS_30)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.example.BINMONITOR.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.example.backend.controller"))
                 .paths(PathSelectors.any())
                 .build()
                 .apiInfo(apiInfo());
@@ -28,8 +28,8 @@ public class SwaggerConfig {
 
     private ApiInfo apiInfo() {
         return new ApiInfo(
-                "Bin Monitor API",
-                "API documentation for Bin Location Management System",
+                "backend API",
+                "API documentation for backend",
                 "v1.0",
                 "Terms of service",
                 new Contact("Your Name", "www.example.com", "contact@example.com"),
