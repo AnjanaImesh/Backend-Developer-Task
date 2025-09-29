@@ -128,6 +128,4 @@ GET /api/v1/student/get-all
 - Make sure your Firebase project allows read/write access for development.
 - For production, secure your Firebase rules appropriately.
 
-## License
-MIT
 
