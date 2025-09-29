@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class studentDTO {
-    private Long id;
+    private String id; // Changed from Long to String for Firebase compatibility
     private String title;
     private String name;
     private String address;
@@ -39,7 +39,7 @@ public class studentDTO {
             return null;
         }
         return new studentDTO(
-            studentEntity.getId(),
+            studentEntity.getId() != null ? studentEntity.getId().toString() : null,
             studentEntity.getTitle(),
             studentEntity.getName(),
             studentEntity.getAddress(),
@@ -53,7 +53,7 @@ public class studentDTO {
      */
     public student toEntity() {
         student studentEntity = new student();
-        studentEntity.setId(this.id);
+        studentEntity.setId(String.valueOf(this.id != null ? Long.parseLong(this.id) : null));
         studentEntity.setTitle(this.title);
         studentEntity.setName(this.name);
         studentEntity.setAddress(this.address);

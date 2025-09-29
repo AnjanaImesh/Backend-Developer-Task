@@ -29,7 +29,7 @@ public class studentController {
 
     @PutMapping("/update/{id}")
     public ResponseEntity<studentDTO> updateStudent(
-            @PathVariable Long id,
+            @PathVariable String id,
             @RequestBody studentDTO studentDTO
     ) {
         studentDTO.setId(id);
@@ -38,13 +38,13 @@ public class studentController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteStudent(@PathVariable Long id) {
+    public ResponseEntity<String> deleteStudent(@PathVariable String id) {
         String message = studentService.deleteStudent(id);
         return ResponseEntity.ok(message);
     }
 
     @GetMapping("/get/{id}")
-    public ResponseEntity<studentDTO> getStudentById(@PathVariable Long id) {
+    public ResponseEntity<studentDTO> getStudentById(@PathVariable String id) {
         studentDTO student = studentService.getStudentById(id);
         return ResponseEntity.ok(student);
     }

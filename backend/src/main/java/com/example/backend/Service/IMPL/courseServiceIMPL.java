@@ -2,30 +2,32 @@ package com.example.backend.Service.IMPL;
 
 import com.example.backend.DTO.courseDTO;
 import com.example.backend.Service.CourseService;
-import com.example.backend.Repo.CourseRepo;
-import com.example.backend.entity.course;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.concurrent.ExecutionException;
 
 @Service
 public class courseServiceIMPL implements CourseService {
 
+    private final DatabaseReference courseRef;
+
     @Autowired
-    private CourseRepo courseRepo;
+    public courseServiceIMPL(FirebaseApp firebaseApp) {
+        this.courseRef = FirebaseDatabase.getInstance(firebaseApp).getReference("courses");
+    }
 
     @Override
     public String saveCourse(courseDTO courseDTO) {
         try {
-            course entity = new course();
-            entity.setName(courseDTO.getName());
-            entity.setFee(courseDTO.getFee());
-            entity.setLecturerId(courseDTO.getLecturerId());
-            entity.setLecturerName(courseDTO.getLecturerName());
-            courseRepo.save(entity);
+            String key = courseRef.push().getKey();
+            courseDTO.setId(key); // Use String for id
+            courseRef.child(key).setValueAsync(courseDTO);
             return "Course saved successfully";
         } catch (Exception e) {
             return "Error saving course: " + e.getMessage();
@@ -34,58 +36,89 @@ public class courseServiceIMPL implements CourseService {
 
     @Override
     public List<courseDTO> getAllCourses() {
-        List<course> courses = courseRepo.findAll();
-        return courses.stream().map(this::convertToDTO).collect(Collectors.toList());
+        List<courseDTO> courseList = new ArrayList<>();
+        try {
+            // Use Firebase Database API for async data retrieval
+            final Object lock = new Object();
+            final List<courseDTO> tempList = new ArrayList<>();
+            courseRef.addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
+                @Override
+                public void onDataChange(com.google.firebase.database.DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        for (com.google.firebase.database.DataSnapshot child : snapshot.getChildren()) {
+                            courseDTO dto = child.getValue(courseDTO.class);
+                            if (dto != null) tempList.add(dto);
+                        }
+                    }
+                    synchronized (lock) {
+                        lock.notify();
+                    }
+                }
+                @Override
+                public void onCancelled(com.google.firebase.database.DatabaseError error) {
+                    synchronized (lock) {
+                        lock.notify();
+                    }
+                }
+            });
+            synchronized (lock) {
+                lock.wait(3000); // Wait for up to 3 seconds for async callback
+            }
+            courseList.addAll(tempList);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return courseList;
     }
 
     @Override
     public courseDTO updateCourse(courseDTO courseDTO) {
-        Optional<course> existingCourse = courseRepo.findById(courseDTO.getId());
-        if (existingCourse.isPresent()) {
-            course entity = existingCourse.get();
-            entity.setName(courseDTO.getName());
-            entity.setFee(courseDTO.getFee());
-            entity.setLecturerId(courseDTO.getLecturerId());
-            entity.setLecturerName(courseDTO.getLecturerName());
-            course updated = courseRepo.save(entity);
-            return convertToDTO(updated);
-        } else {
-            throw new RuntimeException("Course not found with id: " + courseDTO.getId());
+        try {
+            courseRef.child(courseDTO.getId()).setValueAsync(courseDTO);
+            return courseDTO;
+        } catch (Exception e) {
+            return null;
         }
     }
 
     @Override
-    public String deleteCourse(Long id) {
+    public String deleteCourse(String id) {
         try {
-            if (courseRepo.existsById(id)) {
-                courseRepo.deleteById(id);
-                return "Course deleted successfully";
-            } else {
-                return "Course not found with id: " + id;
-            }
+            courseRef.child(id).removeValueAsync();
+            return "Course deleted successfully";
         } catch (Exception e) {
             return "Error deleting course: " + e.getMessage();
         }
     }
 
     @Override
-    public courseDTO getCourseById(Long id) {
-        Optional<course> courseOpt = courseRepo.findById(id);
-        if (courseOpt.isPresent()) {
-            return convertToDTO(courseOpt.get());
-        } else {
-            throw new RuntimeException("Course not found with id: " + id);
+    public courseDTO getCourseById(String id) {
+        final Object lock = new Object();
+        final courseDTO[] result = new courseDTO[1];
+        courseRef.child(id).addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
+            @Override
+            public void onDataChange(com.google.firebase.database.DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    result[0] = snapshot.getValue(courseDTO.class);
+                }
+                synchronized (lock) {
+                    lock.notify();
+                }
+            }
+            @Override
+            public void onCancelled(com.google.firebase.database.DatabaseError error) {
+                synchronized (lock) {
+                    lock.notify();
+                }
+            }
+        });
+        try {
+            synchronized (lock) {
+                lock.wait(3000); // Wait for up to 3 seconds for async callback
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
-    }
-
-    // Helper method to convert Entity to DTO
-    private courseDTO convertToDTO(course entity) {
-        courseDTO dto = new courseDTO();
-        dto.setId(entity.getId());
-        dto.setName(entity.getName());
-        dto.setFee(entity.getFee());
-        dto.setLecturerId(entity.getLecturerId());
-        dto.setLecturerName(entity.getLecturerName());
-        return dto;
+        return result[0];
     }
 }

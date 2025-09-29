@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class courseDTO {
-    private Long id;
+    private String id; // Changed from Long to String for Firebase compatibility
     private String name;
     private Double fee;
     private Long lecturerId;
@@ -37,7 +37,7 @@ public class courseDTO {
             return null;
         }
         return new courseDTO(
-            courseEntity.getId(),
+            courseEntity.getId() != null ? courseEntity.getId().toString() : null,
             courseEntity.getName(),
             courseEntity.getFee(),
             courseEntity.getLecturerId(),

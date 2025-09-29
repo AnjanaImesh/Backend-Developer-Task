@@ -7,7 +7,12 @@ public interface studentService {
     String saveStudent(studentDTO studentDTO);
     List<studentDTO> getAllStudents();
     studentDTO updateStudent(studentDTO studentDTO);
+
     String deleteStudent(Long id);
+
     studentDTO getStudentById(Long id);
+
+    String deleteStudent(String id);
+    studentDTO getStudentById(String id);
     // Add more query methods as needed, e.g. by course, status, etc.
 }

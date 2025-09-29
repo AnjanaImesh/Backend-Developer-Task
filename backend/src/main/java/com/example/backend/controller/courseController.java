@@ -29,7 +29,7 @@ public class courseController {
 
     @PutMapping("/update/{id}")
     public ResponseEntity<courseDTO> updateCourse(
-            @PathVariable Long id,
+            @PathVariable String id,
             @RequestBody courseDTO courseDTO
     ) {
         courseDTO.setId(id);
@@ -38,13 +38,13 @@ public class courseController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteCourse(@PathVariable Long id) {
+    public ResponseEntity<String> deleteCourse(@PathVariable String id) {
         String message = courseService.deleteCourse(id);
         return ResponseEntity.ok(message);
     }
 
     @GetMapping("/get/{id}")
-    public ResponseEntity<courseDTO> getCourseById(@PathVariable Long id) {
+    public ResponseEntity<courseDTO> getCourseById(@PathVariable String id) {
         courseDTO course = courseService.getCourseById(id);
         return ResponseEntity.ok(course);
     }
