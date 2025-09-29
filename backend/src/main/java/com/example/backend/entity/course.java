@@ -31,4 +31,11 @@ public class course {
 
     @Column(nullable = false)
     private String lecturerName;
+
+    public course(Long id, String name, Double fee, Long lecturerId) {
+        this.id = id;
+        this.name = name;
+        this.fee = fee;
+        this.lecturerId = lecturerId;
+    }
 }

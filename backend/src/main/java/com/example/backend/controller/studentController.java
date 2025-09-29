@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.backend.DTO.studentDTO;
-import com.example.backend.Service.StudentService;
+import com.example.backend.Service.studentService;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import java.util.List;
 public class studentController {
 
     @Autowired
-    private StudentService studentService;
+    private studentService studentService;
 
     @PostMapping(path = "/save")
     public String save(@RequestBody studentDTO studentDTO) {
